@@ -3,6 +3,7 @@
 Compile-time FXML-parser is an annotation processor that parses FXML files at compile-time.
 
 ### Setup
+* Make sure a JDK >= 17 is installed and the `PATH` and `JAVA_HOME` environment variables point to it
 * [Download](https://maven.apache.org/download.cgi) and [install](https://maven.apache.org/install.html) [Maven](https://maven.apache.org/)
 * Download the source code of this repository
 * Run `mvn clean install` in the directory of Compile-time FXML-parser

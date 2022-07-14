@@ -9,9 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -36,7 +39,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import io.github.danthe1st.fxml_parser.impl.data.VariableDefinition;
-import javafx.beans.NamedArg;
 
 class FXMLParser {
 	// FXML spec:
@@ -44,22 +46,26 @@ class FXMLParser {
 
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final ProcessingEnvironment processingEnv;
+	private final Element element;
+	private final String targetClass;
 	private int currentNodeId = 0;
 	private ClassWriter writer;
 	private final Map<String, String> imports = new HashMap<>();
 	private TypeElement controller = null;
 	private final Map<String, Map.Entry<String, TypeElement>> fxIds = new HashMap<>();
-	
+
 	public static void parseFXML(ProcessingEnvironment processingEnv, Element element, BufferedReader fxmlReader, String targetClass) throws ParserConfigurationException, SAXException, IOException {
-		new FXMLParser(processingEnv).parseFXML(element, fxmlReader, targetClass);
+		new FXMLParser(processingEnv, targetClass, element).parseFXML(fxmlReader);
 	}
-	
-	private FXMLParser(ProcessingEnvironment processingEnv) {
+
+	private FXMLParser(ProcessingEnvironment processingEnv, String targetClass, Element element) {
 		super();
 		this.processingEnv = processingEnv;
+		this.element = element;
+		this.targetClass = targetClass;
 	}
-	
-	private void parseFXML(Element element, BufferedReader fxmlReader, String targetClass) throws ParserConfigurationException, SAXException, IOException {
+
+	private void parseFXML(BufferedReader fxmlReader) throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
 		InputSource source = new InputSource(fxmlReader);
 		Document fxmlDocument = docBuilder.parse(source);
@@ -72,7 +78,7 @@ class FXMLParser {
 			}
 			if("import".equals(item.getNodeName())){
 				String name = item.getNodeValue();
-				String simpleName = name.substring(name.lastIndexOf('.') + 1);
+				String simpleName = splitByLast(name, '.').getValue();
 				imports.put(simpleName, item.getNodeValue());
 			}else{
 				Element[] importElements = new Element[imports.size() + 1];
@@ -83,9 +89,9 @@ class FXMLParser {
 				}
 				JavaFileObject targetClassObject = processingEnv.getFiler().createSourceFile(targetClass, importElements);
 				allowFurtherElements = false;
-				int lastDotIndex = targetClass.lastIndexOf(".");
-				String packageName = lastDotIndex == -1 ? null : targetClass.substring(0, lastDotIndex);
-				String className = targetClass.substring(lastDotIndex + 1);
+				Entry<String, String> targetSplit = splitByLast(targetClass, '.');
+				String packageName = targetSplit.getKey();
+				String className = targetSplit.getValue();
 				try(ClassWriter writer = new ClassWriter(new BufferedWriter(targetClassObject.openWriter()))){
 					this.writer = writer;
 					if(packageName != null){
@@ -116,6 +122,13 @@ class FXMLParser {
 				}
 			}
 		}
+	}
+
+	private Map.Entry<String, String> splitByLast(String toSplit, char delim) {
+		int lastIndex = toSplit.lastIndexOf(delim);
+		String preDelim = lastIndex == -1 ? "" : toSplit.substring(0, lastIndex);
+		String postDelim = toSplit.substring(lastIndex + 1);
+		return Map.entry(preDelim, postDelim);
 	}
 
 	private void addFXIdsToController() throws IOException {
@@ -213,24 +226,31 @@ class FXMLParser {
 			}
 		}
 	}
-
+	
+	private Optional<String> getValueFromAnnotation(Element element, String annotationName, String annotationValueName) {
+		return element
+			.getAnnotationMirrors()
+			.stream()
+			.filter(mirror -> mirror.getAnnotationType().toString().equals("javafx.beans.NamedArg"))
+			.map(AnnotationMirror::getElementValues)
+			.map(Map::entrySet)
+			.flatMap(Set::stream)
+			.filter(e -> e.getKey().toString().equals(annotationValueName + "()"))
+			.map(e -> e.getValue().getValue().toString())
+			.findAny();
+	}
+	
 	private void findConstructorAndAddCall(int nodeId, String typeName, NamedNodeMap attributes, List<ExecutableElement> constructors) throws IOException {
 		outer: for(ExecutableElement constructor : constructors){
 			List<String> paramExpressions = new ArrayList<>();
 			for(VariableElement param : constructor.getParameters()){
-				String name = param.getSimpleName().toString();
-				NamedArg namedArg = param.getAnnotation(NamedArg.class);
-				if(namedArg != null){
-					name = namedArg.value();
-				}
+				String name = getValueFromAnnotation(param, "javafx.beans.NamedArg", "value")
+					.orElse(param.getSimpleName().toString());
 				Node node = attributes.getNamedItem(name);
 				String value;
 				if(node == null){
-					if(namedArg != null){
-						value = namedArg.defaultValue();
-					}else{
-						value = "";
-					}
+					value = getValueFromAnnotation(param, "javafx.beans.NamedArg", "defaultValue")
+						.orElse("");
 				}else{
 					value = node.getNodeValue();
 				}
@@ -252,12 +272,13 @@ class FXMLParser {
 		boolean isStaticCall = false;
 		if(paramName.startsWith("fx:")){
 			controller = writeFXParameter(paramName, paramValue, controller, imports, nodeVariableName, nodeType);// TODO move out of this method
+			return;
 		}
 		if(paramName.contains(".")){
-			int lastDotIndex = paramName.lastIndexOf('.');
-			receiver = paramName.substring(0, lastDotIndex);
+			Entry<String, String> paramNameSplit = splitByLast(paramName, '.');
+			receiver = paramNameSplit.getKey();
 			String oldValue = paramName;
-			paramName = paramName.substring(lastDotIndex + 1);
+			paramName = paramNameSplit.getValue();
 			TypeElement mirror = getTypeMirrorFromName(receiver, imports);
 			if(mirror == null){
 				throw new IllegalStateException("Invalid type in FXML file: " + oldValue);
@@ -279,14 +300,25 @@ class FXMLParser {
 					}else{
 						writer.addMethodCall(receiver, setterName, expression);
 					}
-					paramSet = true;
-					break;
+					return;
 				}
 			}
+			if(member.getKind() == ElementKind.FIELD && paramName.equals(member.getSimpleName().toString()) && (member.getModifiers().contains(Modifier.PUBLIC) || (!member.getModifiers().contains(Modifier.PRIVATE) && splitByLast(member.asType().toString(), '.').getKey().equals(splitByLast(targetClass, '.').getKey())))){
+				writer.addAssignment(receiver + "." + paramName, evaluateExpression(paramValue, ((VariableElement) member).asType()));
+				return;
+			}else if(member.getKind() == ElementKind.FIELD && paramName.equals(member.getSimpleName().toString()) && member.getAnnotationMirrors().stream().anyMatch(mirror -> mirror.getAnnotationType().toString().equals("javafx.fxml.FXML")) && processingEnv.getElementUtils().getModuleOf(member).equals(processingEnv.getElementUtils().getModuleOf(element))){
+				writer.beginTryBlock();
+				writer.addVariable(new VariableDefinition("java.lang.reflect.Field", "field"), receiver + ".getClass().getDeclaredField(\"" + paramName + "\")");
+				writer.addMethodCall("field", "setAccessible", "true");
+				writer.addMethodCall("field", "set", receiver, evaluateExpression(paramValue, ((VariableElement) member).asType()));
+				writer.swtichToCatchBlock("java.lang.Exception", "e");
+				writer.addStatement("throw new java.lang.AssertionError(e)");
+				writer.endTryBlock();
+				return;
+			}
 		}
-		if(!paramSet){
-			processingEnv.getMessager().printMessage(Kind.MANDATORY_WARNING, "unused parameter in FXML file: " + paramName);
-			// TODO assign warning to element
+		if(!paramSet && !paramName.startsWith("xmlns")){
+			processingEnv.getMessager().printMessage(Kind.MANDATORY_WARNING, "unused parameter in FXML file: " + paramName, element);
 		}
 	}
 
@@ -334,7 +366,7 @@ class FXMLParser {
 			throw new IllegalStateException("trying to set unknown type in FXML file: " + expressionType);
 		}
 	}
-	
+
 	private TypeElement getTypeMirrorFromName(String name, Map<String, String> imports) {
 		if(imports.containsKey(name)){
 			name = imports.get(name);
@@ -347,7 +379,7 @@ class FXMLParser {
 		}
 		return processingEnv.getElementUtils().getTypeElement(name);
 	}
-	
+
 	private List<ExecutableElement> getConstructors(Element elem) {
 		List<ExecutableElement> constructors = new ArrayList<>();
 		for(Element element : elem.getEnclosedElements()){
@@ -361,5 +393,5 @@ class FXMLParser {
 		}
 		return constructors;
 	}
-	
+
 }

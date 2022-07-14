@@ -4,14 +4,6 @@
 	<artifactId>compile-time-fxml-parser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Compile time FXML parser</name>
-	<dependencies>
-
-	<dependency>
-		<groupId>org.openjfx</groupId>
-		<artifactId>javafx-base</artifactId>
-		<version>17.0.2</version>
-	</dependency>
-	</dependencies>
 	<build>
 		<plugins>
 			<plugin>

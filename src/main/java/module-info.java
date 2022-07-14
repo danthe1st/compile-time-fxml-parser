@@ -6,5 +6,5 @@ module io.github.danthe1st.fxml_parser {
 
 	exports io.github.danthe1st.fxml_parser.api;
 
-	provides javax.annotation.processing.Processor with io.github.danthe1st.fxml_parser.impl.FXMLParser;
+	provides javax.annotation.processing.Processor with io.github.danthe1st.fxml_parser.impl.FXMLProcessor;
 }

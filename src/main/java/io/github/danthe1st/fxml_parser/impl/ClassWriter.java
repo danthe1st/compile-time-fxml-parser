@@ -75,8 +75,11 @@ public class ClassWriter implements AutoCloseable {
 	// region methods
 
 	// public static method
-	public void beginMethod(String name, String returnType, VariableDefinition... parameters) throws IOException {
-		writer.write("public static ");
+	public void beginMethod(String[] modifiers, String name, String returnType, VariableDefinition... parameters) throws IOException {
+		for(String modifier : modifiers){
+			writer.write(modifier);
+			writer.write(' ');
+		}
 		writer.write(returnType);
 		writer.write(" ");
 		writer.write(name);

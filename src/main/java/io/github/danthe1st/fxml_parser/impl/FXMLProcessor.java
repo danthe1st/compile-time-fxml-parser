@@ -55,11 +55,11 @@ public class FXMLProcessor extends AbstractProcessor {
 			}else{
 				processingEnv.getMessager().printMessage(Kind.ERROR, "Only classes may be annotated with @" + ParseFXML.class.getSimpleName(), element);
 			}
-			
+
 		}
 		return false;
 	}
-	
+
 	private void parseFXML(Element element, String fxmlFile, String targetClass) throws IOException, ParserConfigurationException, SAXException {
 		int lastShashIndex = fxmlFile.lastIndexOf('/');
 		FileObject fxmlFileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, lastShashIndex == -1 ? "" : fxmlFile.substring(0, lastShashIndex), fxmlFile.substring(lastShashIndex + 1));
@@ -71,5 +71,5 @@ public class FXMLProcessor extends AbstractProcessor {
 			FXMLParser.parseFXML(processingEnv, element, fxmlFile, fxmlReader, targetClass);
 		}
 	}
-	
+
 }

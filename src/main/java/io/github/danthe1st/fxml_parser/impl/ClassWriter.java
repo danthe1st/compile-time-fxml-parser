@@ -159,6 +159,10 @@ public class ClassWriter implements AutoCloseable {
 		endStatement();
 	}
 
+	public void addThrow(String exceptionExpression) throws IOException {
+		addStatement("throw " + exceptionExpression);
+	}
+
 	public void beginIf(String condition) throws IOException {
 		writer.write("if (");
 		writer.write(condition);
@@ -255,5 +259,4 @@ public class ClassWriter implements AutoCloseable {
 	public void close() throws IOException {
 		writer.close();
 	}
-
 }

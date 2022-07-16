@@ -104,23 +104,33 @@ class FXMLParser {
 					}
 					writer.beginClass(className);
 					String nodeType = item.getNodeName();
-					writer.beginMethod(new String[] { "private" }, "buildNode", nodeType);
+					writer.addVariable(new VariableDefinition("private " + nodeType, "rootNode"));
+					writer.beginMethod(new String[] { "public" }, "buildNode", "void");
+					writer.beginIf("rootNode != null");
+					writer.addThrow("new IllegalStateException(\"Cannot call buildNode() multiple times\")");
+					writer.endIf();
 					parseNode(item, imports);
 					if(controller != null){
 						addFXIdsToController();
 						writeControllerInitialization(writer);
 					}
-					writer.addReturn("node0");
+					writer.addAssignment("rootNode", "node0");
 					writer.endMethod();
 					if(controller != null){
-						writer.addVariable(new VariableDefinition(controller.asType().toString(), "controller"));
+						writer.addVariable(new VariableDefinition("private " + controller.asType().toString(), "controller"));
 						writer.beginMethod(new String[] { "public" }, "getController", controller.asType().toString());
 						writer.addReturn("controller");
 						writer.endMethod();
 					}
-					writer.beginMethod(new String[] { "public", "static" }, "createNode", nodeType);
-					writer.addReturn("new " + targetClass + "().buildNode()");
+					writer.beginMethod(new String[] { "public" }, "getRoot", nodeType);
+					writer.addReturn("rootNode");
 					writer.endMethod();
+					writer.beginMethod(new String[] { "public", "static" }, "createNode", nodeType);
+					writer.addVariable(new VariableDefinition(targetClass, "loader"), "new " + targetClass + "()");
+					writer.addMethodCall("loader", "buildNode");
+					writer.addReturn("loader.getRoot()");
+					writer.endMethod();
+
 					writer.endClass();
 				}
 			}
@@ -398,6 +408,8 @@ class FXMLParser {
 			return fxIds.get(paramValue).getKey();
 		}else if(paramValue.startsWith(":node")){
 			return paramValue.substring(1);
+		}else if(paramValue.startsWith("#") && controller != null){
+			return "controller::" + paramValue.substring(1);
 		}else{
 			throw new IllegalStateException("trying to set unknown type in FXML file: " + expressionType);
 		}

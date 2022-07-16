@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+}
+javafx {
+    version = "11"
+    modules = [ 'javafx.controls','javafx.fxml','javafx.graphics' ]
+}
+group 'io.github.danthe1st'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+application.mainClassName= 'io.github.danthe1st.fxml_parser.example.gradle.GradleExample'
+dependencies {
+    annotationProcessor 'io.github.danthe1st:compile-time-fxml-parser:0.0.1-SNAPSHOT'
+    compileOnly 'io.github.danthe1st:compile-time-fxml-parser:0.0.1-SNAPSHOT'
+    implementation 'org.openjfx:javafx-base:11'
+    implementation 'org.openjfx:javafx-graphics:11'
+    implementation 'org.openjfx:javafx-controls:11'
+    implementation 'org.openjfx:javafx-fxml:11'
+}
+copy {
+    from 'src/main/resources'
+    into 'build/classes/java/main'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+processResources{
+    from 'src/main/resources'
+    into 'build/classes/java/main'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+tasks.withType(Jar) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+compileJava{
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    dependsOn('processResources')
+}
+test {
+    useJUnitPlatform()
+}

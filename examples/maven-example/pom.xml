@@ -48,7 +48,7 @@
 				<artifactId>javafx-maven-plugin</artifactId>
 				<version>0.0.3</version>
 				<configuration>
-					<mainClass>io.github.danthe1st.fxml_parser.example.FXMLParserExample</mainClass>
+					<mainClass>io.github.danthe1st.fxml_parser.example.maven.FXMLParserExample</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

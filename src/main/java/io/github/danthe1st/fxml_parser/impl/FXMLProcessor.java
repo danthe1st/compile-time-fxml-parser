@@ -1,6 +1,7 @@
 package io.github.danthe1st.fxml_parser.impl;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -63,8 +64,9 @@ public class FXMLProcessor extends AbstractProcessor {
 	private void parseFXML(Element element, String fxmlFile, String targetClass) throws IOException, ParserConfigurationException, SAXException {
 		int lastShashIndex = fxmlFile.lastIndexOf('/');
 		FileObject fxmlFileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, lastShashIndex == -1 ? "" : fxmlFile.substring(0, lastShashIndex), fxmlFile.substring(lastShashIndex + 1));
-		if(!new java.io.File(fxmlFileObject.toUri()).exists()){
-			processingEnv.getMessager().printMessage(Kind.ERROR, "FXML resource missing: " + fxmlFile, element);
+		File f = new java.io.File(fxmlFileObject.toUri());
+		if(!f.exists()){
+			processingEnv.getMessager().printMessage(Kind.ERROR, "FXML resource missing: " + fxmlFile + " (" + f + ")", element);
 			return;
 		}
 		try(BufferedReader fxmlReader = new BufferedReader(fxmlFileObject.openReader(false))){

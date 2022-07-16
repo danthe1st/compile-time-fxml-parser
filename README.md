@@ -41,7 +41,7 @@ and specify the path of the FXML file in paranthesis.
 
 The FXML file is resolved relative to the resource root.
 
-This should automatically create a class with the name of the annotated class + "FXMLParser" (the class name can be overwritten by specifying `className` in the annotation) with a method `createNode()`.
+This should automatically create a class with the name of the annotated class + "FXMLRepresentation" (the class name can be overwritten by specifying `className` in the annotation) with a method `createNode()`.
 This method loads the UI elements specified in the FXML file and returns the root element.
 
 An example can be found in [examples/maven-example](examples/maven-example).

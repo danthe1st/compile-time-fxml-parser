@@ -13,5 +13,5 @@ That should open a window like this:
 ### Important files and directories
 * The file [pom.xml](pom.xml) contains project configuration.
 * The FXML file parsed is located in [src/main/resources/fxml/test.fxml](src/main/resources/fxml/test.fxml).
-* The class [FXMLParserController](src/main/java/io/github/danthe1st/fxml_parser/example/FXMLParserController.java) is annotated with `@ParseFXML("test.fxml")` which results in the class `FXMLParserControllerFXMLParser` being generated and accessible.
+* The class [FXMLParserController](src/main/java/io/github/danthe1st/fxml_parser/example/FXMLParserController.java) is annotated with `@ParseFXML("test.fxml")` which results in the class `FXMLParserControllerFXMLFXMLRepresentation` being generated and accessible.
 * The class [FXMLParserExample](src/main/java/io/github/danthe1st/fxml_parser/example/FXMLParserController.java) is the main class.

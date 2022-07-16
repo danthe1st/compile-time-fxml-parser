@@ -105,6 +105,14 @@ class FXMLParser {
 					}
 					writer.beginClass(className);
 					String nodeType = item.getNodeName();
+					if("fx:root".equals(nodeType)){
+						Node typeNode = item.getAttributes().getNamedItem("type");
+						if(typeNode == null){
+							processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root element without type attribute present in FXML file", element);
+							return;
+						}
+						nodeType = typeNode.getNodeValue();
+					}
 					writer.addVariable(new VariableDefinition("private " + nodeType, "rootNode"));
 					writer.addVariable(new VariableDefinition("private " + ResourceBundle.class.getCanonicalName(), "resourceBundle"));
 					writer.beginMethod(new String[] { "public" }, "buildNode", "void");
@@ -186,13 +194,24 @@ class FXMLParser {
 		// TODO builders
 
 		int nodeId = currentNodeId++;
-
 		String typeName = item.getNodeName();
+		NamedNodeMap attributes = item.getAttributes();
+		if("fx:root".equals(typeName)){
+			Node typeNode = attributes.getNamedItem("type");
+			if(typeName == null){
+				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root element without type attribute present in FXML file", element);
+				return;
+			}
+			if(nodeId != 0){
+				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root is allowed only for the first element", element);
+			}
+			typeName = typeNode.getNodeValue();
+		}
 		TypeElement typeElem = getTypeMirrorFromName(typeName, imports);
 		if(typeElem == null){
 			throw new IllegalStateException("Invalid type in FXML file: " + typeName + " - an import may be missing or the class is not present in the module path");
 		}
-		NamedNodeMap attributes = item.getAttributes();
+
 		List<? extends Element> members = processingEnv.getElementUtils().getAllMembers(typeElem);
 		findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
 		if(processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(typeElem.asType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.Map").asType()))){

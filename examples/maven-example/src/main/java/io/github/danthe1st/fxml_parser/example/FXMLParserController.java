@@ -15,19 +15,19 @@ import javafx.scene.text.Text;
 public class FXMLParserController implements Initializable {
 	@FXML
 	private Text bottomText;
-	
+
 	AnchorPane rootPane;
 	
 	@FXML
 	public void onBottomTextClicked(MouseEvent event) {
 		bottomText.setText("click: " + LocalTime.now());
 	}
-	
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		System.out.println(rootPane + ", " + location + ", " + resources);
 	}
-
+	
 	@FXML
 	public void initialize() {
 		bottomText.setText("click me");

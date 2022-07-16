@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
-<?import java.util.HashMap?>
 
 <AnchorPane fx:id="rootPane" prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.danthe1st.fxml_parser.example.FXMLParserController">
    <children>
@@ -15,7 +15,11 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Text>
-      <Text layoutY="137.0" strokeType="OUTSIDE" strokeWidth="0.0" text="prefilled TextField" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="120.0" />
+      <Text layoutY="137.0" strokeType="OUTSIDE" strokeWidth="0.0" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="120.0">
+      	<text>
+      		<String fx:value="prefilled TextField" />
+      	</text>
+      </Text>
       <Text layoutX="136.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty TextField" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="175.0" />
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
       <Text fx:id="bottomText" onMouseClicked="#onBottomTextClicked" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-style: italic;" text="Text" textAlignment="CENTER" wrappingWidth="600.0" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="250.0" />

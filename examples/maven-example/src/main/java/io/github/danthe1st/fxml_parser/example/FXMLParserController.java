@@ -28,6 +28,7 @@ public class FXMLParserController implements Initializable {
 		System.out.println(rootPane + ", " + location + ", " + resources);
 	}
 
+	@FXML
 	public void initialize() {
 		bottomText.setText("click me");
 	}

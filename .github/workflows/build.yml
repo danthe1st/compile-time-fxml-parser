@@ -21,4 +21,4 @@ jobs:
         cd examples/maven-example
         mvn compile
     - name: Show Generated code
-      run: find target/generated-sources/annotations -type f | cat $(cat -)
+      run: find examples/maven-example/target/generated-sources/annotations -type f | cat $(cat -)

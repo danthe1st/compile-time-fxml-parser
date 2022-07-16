@@ -309,6 +309,11 @@ class FXMLParser {
 			}
 			throw new IllegalStateException("fx:value present in " + typeName + " in FXML file but no matching valueOf method was found");
 		}
+		Node fxFactory = attributes.getNamedItem("fx:factory");
+		if(fxFactory != null){
+			writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), typeName + "." + fxFactory.getNodeValue() + "()");
+			return;
+		}
 		List<ExecutableElement> constructors = getConstructors(typeElem);
 		for(ExecutableElement constructor : constructors){
 			Map<String, String> params = new HashMap<>();
@@ -424,6 +429,8 @@ class FXMLParser {
 			}
 			break;
 		case "value":
+			break;// handled elsewhere
+		case "factory":
 			break;// handled elsewhere
 		default:
 			throw new IllegalArgumentException("Unexpected value: " + paramName);

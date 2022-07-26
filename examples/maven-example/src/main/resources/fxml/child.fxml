@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.danthe1st.fxml_parser.example.maven.OtherController">
+   <children>
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This is a VBox from another FXML file" />
+      <Button mnemonicParsing="false" text="Button" />
+   </children>
+</VBox>

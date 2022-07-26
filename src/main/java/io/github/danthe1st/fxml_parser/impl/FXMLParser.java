@@ -2,6 +2,7 @@ package io.github.danthe1st.fxml_parser.impl;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -27,11 +28,14 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -56,8 +60,21 @@ class FXMLParser {
 	private TypeElement controller = null;
 	private final Map<String, Map.Entry<String, TypeElement>> fxIds = new HashMap<>();
 	
-	public static void parseFXML(ProcessingEnvironment processingEnv, Element element, String fxmlFile, BufferedReader fxmlReader, String targetClass) throws ParserConfigurationException, SAXException, IOException {
-		new FXMLParser(processingEnv, targetClass, element, fxmlFile).parseFXML(fxmlReader);
+	public static TypeElement parseFXML(ProcessingEnvironment processingEnv, Element element, String fxmlFile, String targetClass) throws IOException, ParserConfigurationException, SAXException {
+		int lastShashIndex = fxmlFile.lastIndexOf('/');
+		FileObject fxmlFileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, lastShashIndex == -1 ? "" : fxmlFile.substring(0, lastShashIndex), fxmlFile.substring(lastShashIndex + 1));
+		File f = new java.io.File(fxmlFileObject.toUri());
+		if(!f.exists()){
+			processingEnv.getMessager().printMessage(Kind.ERROR, "FXML resource missing: " + fxmlFile + " (" + f + ")", element);
+			return null;
+		}
+		try(BufferedReader fxmlReader = new BufferedReader(fxmlFileObject.openReader(false))){
+			return parseFXML(processingEnv, element, fxmlFile, fxmlReader, targetClass);
+		}
+	}
+	
+	private static TypeElement parseFXML(ProcessingEnvironment processingEnv, Element element, String fxmlFile, BufferedReader fxmlReader, String targetClass) throws ParserConfigurationException, SAXException, IOException {
+		return new FXMLParser(processingEnv, targetClass, element, fxmlFile).parseFXML(fxmlReader);
 	}
 	
 	private FXMLParser(ProcessingEnvironment processingEnv, String targetClass, Element element, String fxmlFile) {
@@ -68,12 +85,13 @@ class FXMLParser {
 		this.targetClass = targetClass;
 	}
 	
-	private void parseFXML(BufferedReader fxmlReader) throws ParserConfigurationException, SAXException, IOException {
+	private TypeElement parseFXML(BufferedReader fxmlReader) throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
 		InputSource source = new InputSource(fxmlReader);
 		Document fxmlDocument = docBuilder.parse(source);
 		NodeList childNodes = fxmlDocument.getChildNodes();
 		boolean allowFurtherElements = true;
+		String rootTypeName = null;
 		for(int i = 0; i < childNodes.getLength(); i++){
 			Node item = childNodes.item(i);
 			if(!allowFurtherElements){
@@ -109,10 +127,11 @@ class FXMLParser {
 						Node typeNode = item.getAttributes().getNamedItem("type");
 						if(typeNode == null){
 							processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root element without type attribute present in FXML file", element);
-							return;
+							return null;
 						}
 						nodeType = typeNode.getNodeValue();
 					}
+					rootTypeName = nodeType;
 					writer.addVariable(new VariableDefinition("private " + nodeType, "rootNode"));
 					writer.addVariable(new VariableDefinition("private " + ResourceBundle.class.getCanonicalName(), "resourceBundle"));
 					writer.beginMethod(new String[] { "public" }, "buildNode", "void");
@@ -135,21 +154,25 @@ class FXMLParser {
 					writer.beginMethod(new String[] { "public" }, "getRoot", nodeType);
 					writer.addReturn("rootNode");
 					writer.endMethod();
-
+					
 					writer.beginMethod(new String[] { "public", "static" }, "createNode", nodeType);
 					writer.addVariable(new VariableDefinition(targetClass, "loader"), "new " + targetClass + "()");
 					writer.addMethodCall("loader", "buildNode");
 					writer.addReturn("loader.getRoot()");
 					writer.endMethod();
-
+					
 					writer.beginMethod(new String[] { "public" }, "setResourceBundle", "void", new VariableDefinition(ResourceBundle.class.getCanonicalName(), "bundle"));
+					writer.beginIf("rootNode != null");
+					writer.addThrow("new IllegalStateException(\"setResourceBundle() needs to be called before buioldNode()\")");
+					writer.endIf();
 					writer.addAssignment("resourceBundle", "bundle");
 					writer.endMethod();
-
+					
 					writer.endClass();
 				}
 			}
 		}
+		return rootTypeName == null ? null : getTypeMirrorFromName(rootTypeName, imports);
 	}
 	
 	private void writeControllerInitialization(ClassWriter writer) throws IOException {
@@ -188,14 +211,15 @@ class FXMLParser {
 		}
 	}
 	
-	private void parseNode(Node item, Map<String, String> imports) throws IOException {
+	private void parseNode(Node item, Map<String, String> imports) throws IOException, DOMException, ParserConfigurationException, SAXException {
 		// TODO what to do with text nodes?
 		// TODO FXML namespace
 		// TODO builders
-
+		
 		int nodeId = currentNodeId++;
 		String typeName = item.getNodeName();
 		NamedNodeMap attributes = item.getAttributes();
+		boolean needToCreate = true;
 		if("fx:root".equals(typeName)){
 			Node typeNode = attributes.getNamedItem("type");
 			if(typeName == null){
@@ -206,31 +230,56 @@ class FXMLParser {
 				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root is allowed only for the first element", element);
 			}
 			typeName = typeNode.getNodeValue();
+		}else if("fx:include".equals(typeName)){
+			// TODO
+			Node fxSource = attributes.getNamedItem("source");
+			if(fxSource == null){
+				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:include element without source attribute present in FXML file", element);
+				return;
+			}
+			String includeFXML = fxSource.getNodeValue();
+			if(!includeFXML.startsWith("/") && fxmlFile.contains("/")){
+				includeFXML = splitByLast(fxmlFile, '/').getKey() + "/" + includeFXML;
+			}
+			String includeClass = targetClass + "Include" + nodeId;
+			TypeElement includedRoot = parseFXML(processingEnv, element, includeFXML, includeClass);
+			// TODO replace 'var' with actual type name
+			String includeLoaderName = "node" + nodeId + "Loader";
+			writer.addVariable(new VariableDefinition(includeClass, includeLoaderName), "new " + includeClass + "()");
+			writer.addMethodCall(includeLoaderName, "setResourceBundle", "this.resourceBundle");
+			writer.addMethodCall(includeLoaderName, "buildNode");
+			writer.addVariable(new VariableDefinition(includedRoot.getQualifiedName().toString(), "node" + nodeId), includeLoaderName + ".getRoot()");
+			typeName = includedRoot.getQualifiedName().toString();
+			needToCreate = false;
 		}
 		TypeElement typeElem = getTypeMirrorFromName(typeName, imports);
 		if(typeElem == null){
 			throw new IllegalStateException("Invalid type in FXML file: " + typeName + " - an import may be missing or the class is not present in the module path");
 		}
-
+		
 		List<? extends Element> members = processingEnv.getElementUtils().getAllMembers(typeElem);
-		findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
-		if(processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(typeElem.asType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.Map").asType()))){
-			for(int i = 0; i < attributes.getLength(); i++){
-				Node attr = attributes.item(i);
-				String paramName = attr.getNodeName();
-				String paramValue = attr.getNodeValue();
-				TypeMirror type = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
-				// TODO try to infer actual type from target
-				writer.addMethodCall("node" + nodeId, "put", evaluateExpression(paramName, type), evaluateExpression(paramValue, type));
+		if(needToCreate){
+			findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
+			if(processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(typeElem.asType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.Map").asType()))){
+				for(int i = 0; i < attributes.getLength(); i++){
+					Node attr = attributes.item(i);
+					String paramName = attr.getNodeName();
+					String paramValue = attr.getNodeValue();
+					TypeMirror type = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
+					// TODO try to infer actual type from target
+					writer.addMethodCall("node" + nodeId, "put", evaluateExpression(paramName, type), evaluateExpression(paramValue, type));
+				}
+				return;
 			}
-			return;
 		}
 		if(attributes != null){
 			for(int i = 0; i < attributes.getLength(); i++){
 				Node attr = attributes.item(i);
 				String paramName = attr.getNodeName();
 				String paramValue = attr.getNodeValue();
-				writeParameter(imports, "node" + nodeId, members, paramName, paramValue, typeElem);
+				if(!(needToCreate && "source".equals(paramName))){
+					writeParameter(imports, "node" + nodeId, members, paramName, paramValue, typeElem);
+				}
 			}
 		}
 		NodeList children = item.getChildNodes();
@@ -243,9 +292,9 @@ class FXMLParser {
 				String accessorSuffix = Character.toUpperCase(nodeName.charAt(0)) + nodeName.substring(1);
 				String getterName = "get" + accessorSuffix;
 				String setterName = "set" + accessorSuffix;
-
+				
 				boolean isList = false;
-
+				
 				for(Element member : members){
 					if(member.getKind() == ElementKind.METHOD && getterName.equals(member.getSimpleName().toString())){
 						ExecutableType memberType = (ExecutableType) member.asType();
@@ -255,7 +304,7 @@ class FXMLParser {
 						}
 					}
 				}
-
+				
 				if(isList){
 					NodeList grandChildren = child.getChildNodes();
 					for(int j = 0; j < grandChildren.getLength(); j++){
@@ -290,7 +339,7 @@ class FXMLParser {
 			}
 		}
 	}
-
+	
 	private Optional<String> getValueFromAnnotation(Element element, String annotationName, String annotationValueName) {
 		return element
 			.getAnnotationMirrors()
@@ -303,14 +352,14 @@ class FXMLParser {
 			.map(e -> e.getValue().getValue().toString())
 			.findAny();
 	}
-
+	
 	private boolean isAnnotated(Element elem, String annotationName) {
 		return elem
 			.getAnnotationMirrors()
 			.stream()
 			.anyMatch(mirror -> mirror.getAnnotationType().toString().equals(annotationName));
 	}
-
+	
 	private void findConstructorAndAddCall(int nodeId, String typeName, NamedNodeMap attributes, TypeElement typeElem) throws IOException {
 		Node fxValue = attributes.getNamedItem("fx:value");
 		if(fxValue != null){
@@ -348,7 +397,7 @@ class FXMLParser {
 		}
 		throw new IllegalStateException("No constructor found for " + typeName + " in FXML file");
 	}
-
+	
 	private List<String> evaluateParameters(ExecutableElement constructor, Map<String, String> params) {
 		List<String> paramExpressions = new ArrayList<>();
 		for(VariableElement param : constructor.getParameters()){

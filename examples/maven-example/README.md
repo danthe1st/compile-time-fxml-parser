@@ -15,3 +15,15 @@ That should open a window like this:
 * The FXML file parsed is located in [src/main/resources/fxml/test.fxml](src/main/resources/fxml/test.fxml).
 * The class [FXMLParserController](src/main/java/io/github/danthe1st/fxml_parser/example/maven/FXMLParserController.java) is annotated with `@ParseFXML("test.fxml")` which results in the class `FXMLParserControllerFXMLFXMLRepresentation` being generated and accessible.
 * The class [FXMLParserExample](src/main/java/io/github/danthe1st/fxml_parser/maven/example/FXMLParserController.java) is the main class.
+
+### Limitations
+
+This project is not finished and is therefore missing functionality.
+
+Furthermore, the following things needed to be left out because of Compile-time FXML-parser's static nature:
+
+- Builders (using `javafx.util.Builder` are not supported because they require looking up attributes of arbitary subclasses in unsupported packages.
+
+Other limitations include:
+
+- Big FXML files may fail compilation because of too many local variables. In that case, one split up the FXML file into multiple files using `fx:include`.

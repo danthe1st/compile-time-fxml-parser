@@ -1,7 +1,5 @@
 package io.github.danthe1st.fxml_parser.impl;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -17,11 +15,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.tools.Diagnostic.Kind;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
 
 import io.github.danthe1st.fxml_parser.api.ParseFXML;
 
@@ -42,7 +35,7 @@ public class FXMLProcessor extends AbstractProcessor {
 					}else if(!targetClass.contains(".")){
 						targetClass = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName() + "." + targetClass;
 					}
-					parseFXML(element, fxmlFile, targetClass);
+					FXMLParser.parseFXML(processingEnv, element, fxmlFile, targetClass);
 				}catch(Exception e){
 					processingEnv.getMessager().printMessage(Kind.ERROR, "An exception occured trying to parse the FXML file " + fxmlFile + ": " + e.getClass().getCanonicalName() + (e.getMessage() == null ? "" : ": " + e.getMessage()), element);
 					try(StringWriter sw = new StringWriter();
@@ -59,19 +52,6 @@ public class FXMLProcessor extends AbstractProcessor {
 			
 		}
 		return false;
-	}
-	
-	private void parseFXML(Element element, String fxmlFile, String targetClass) throws IOException, ParserConfigurationException, SAXException {
-		int lastShashIndex = fxmlFile.lastIndexOf('/');
-		FileObject fxmlFileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, lastShashIndex == -1 ? "" : fxmlFile.substring(0, lastShashIndex), fxmlFile.substring(lastShashIndex + 1));
-		File f = new java.io.File(fxmlFileObject.toUri());
-		if(!f.exists()){
-			processingEnv.getMessager().printMessage(Kind.ERROR, "FXML resource missing: " + fxmlFile + " (" + f + ")", element);
-			return;
-		}
-		try(BufferedReader fxmlReader = new BufferedReader(fxmlFileObject.openReader(false))){
-			FXMLParser.parseFXML(processingEnv, element, fxmlFile, fxmlReader, targetClass);
-		}
 	}
 	
 }

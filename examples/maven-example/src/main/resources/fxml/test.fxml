@@ -22,6 +22,7 @@
       </Text>
       <Text layoutX="136.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty TextField" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="175.0" />
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
-      <Text fx:id="bottomText" onMouseClicked="#onBottomTextClicked" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-style: italic;" text="Text" textAlignment="CENTER" wrappingWidth="600.0" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="250.0" />
+      <Text fx:id="bottomText" onMouseClicked="#onBottomTextClicked" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-style: italic;" text="Text" textAlignment="LEFT" wrappingWidth="254.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="50.0" />
+      <fx:include source="child.fxml" AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="50.0" />
    </children>
 </fx:root>

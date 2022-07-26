@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
+<?import java.lang.Double?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
@@ -8,7 +9,9 @@
 
 <fx:root fx:id="rootPane" prefHeight="300.0" prefWidth="600.0" type="AnchorPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.danthe1st.fxml_parser.example.maven.FXMLParserController">
    <children>
-      <TextField layoutX="257.0" layoutY="201.0" prefHeight="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="175.0" />
+      <TextField layoutX="257.0" layoutY="201.0" prefHeight="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="175.0" >
+      	<minHeight><Double fx:constant="NEGATIVE_INFINITY"/></minHeight>
+      </TextField>
       <TextField layoutX="257.0" layoutY="119.0" prefHeight="20.0" text="Hello World" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="120.0" />
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This was loaded from an FXML file at compile-time" textAlignment="CENTER" wrappingWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
          <font>

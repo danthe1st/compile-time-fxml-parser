@@ -398,6 +398,11 @@ class FXMLParser {
 			writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), typeName + "." + fxFactory.getNodeValue() + "()");
 			return;
 		}
+		Node fxConstant = attributes.getNamedItem("fx:constant");
+		if(fxConstant != null){
+			writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), typeName + "." + fxConstant.getNodeValue());
+			return;
+		}
 		List<ExecutableElement> constructors = getConstructors(typeElem);
 		List<String> maxParamExpressions = null;
 		for(ExecutableElement constructor : constructors){
@@ -516,9 +521,7 @@ class FXMLParser {
 				throw new IllegalArgumentException("Duplicate fx:id: " + paramValue);
 			}
 			break;
-		case "value":
-			break;// handled elsewhere
-		case "factory":
+		case "value", "factory", "constant":
 			break;// handled elsewhere
 		default:
 			throw new IllegalArgumentException("Unexpected value: " + paramName);

@@ -6,12 +6,19 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jfx.version>11</jfx.version>
+		<fxml-parser-version>-SNAPSHOT</fxml-parser-version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>io.github.danthe1st</groupId>
+			<groupId>com.github.danthe1st</groupId>
 			<artifactId>compile-time-fxml-parser</artifactId>
-			<version>${project.version}</version>
+			<version>${fxml-parser-version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -36,9 +43,9 @@
 					<release>11</release>
 					<annotationProcessorPaths>
 						<annotationProcessorPath>
-							<groupId>io.github.danthe1st</groupId>
+							<groupId>com.github.danthe1st</groupId>
 							<artifactId>compile-time-fxml-parser</artifactId>
-							<version>${project.version}</version>
+							<version>${fxml-parser-version}</version>
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>

@@ -173,7 +173,7 @@ class FXMLParser {
 					
 					writer.beginMethod(new String[] { "public" }, "setResourceBundle", "void", new VariableDefinition(ResourceBundle.class.getCanonicalName(), "bundle"));
 					writer.beginIf("rootNode != null");
-					writer.addThrow("new IllegalStateException(\"setResourceBundle() needs to be called before buioldNode()\")");
+					writer.addThrow("new IllegalStateException(\"setResourceBundle() needs to be called before buildNode()\")");
 					writer.endIf();
 					writer.addAssignment("resourceBundle", "bundle");
 					writer.endMethod();

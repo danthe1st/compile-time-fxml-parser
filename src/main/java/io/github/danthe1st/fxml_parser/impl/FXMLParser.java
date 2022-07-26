@@ -327,7 +327,15 @@ class FXMLParser {
 				// TODO
 			}else{
 				String nodeName = child.getNodeName();
-				String accessorSuffix = Character.toUpperCase(nodeName.charAt(0)) + nodeName.substring(1);
+				String attributeName = nodeName;
+				String receiver = "node" + nodeId;
+				if(attributeName.contains(".")){
+					Entry<String, String> split = splitByLast(attributeName, '.');
+					attributeName = split.getValue();
+					receiver = split.getKey();
+					members = processingEnv.getElementUtils().getAllMembers(getTypeMirrorFromName(receiver, imports));
+				}
+				String accessorSuffix = Character.toUpperCase(attributeName.charAt(0)) + (attributeName.length() == 1 ? "" : attributeName.substring(1));
 				String getterName = "get" + accessorSuffix;
 				String setterName = "set" + accessorSuffix;
 				
@@ -371,11 +379,35 @@ class FXMLParser {
 							}
 						}
 					}
-					parseNode(grandChild, imports);
-					writer.addMethodCall("node" + nodeId, setterName, "node" + childNodeId);
+					resolveAttributeChildren(imports, nodeId, members, child, nodeName, receiver, setterName, childNodeId, grandChild);
 				}
 			}
 		}
+	}
+	
+	private void resolveAttributeChildren(Map<String, String> imports, int nodeId, List<? extends Element> members, Node child, String nodeName, String receiver, String setterName, int childNodeId, Node grandChild) throws IOException, ParserConfigurationException, SAXException {
+		if(grandChild == null){
+			for(Element member : members){
+				if(member.getKind() == ElementKind.METHOD && setterName.equals(member.getSimpleName().toString()) && ((nodeName.contains(".") && ((ExecutableElement) member).getParameters().size() == 2) || (!nodeName.contains(".") && ((ExecutableElement) member).getParameters().size() == 1))){
+					VariableElement paramType = ((ExecutableElement) member).getParameters().get(nodeName.contains(".") ? 1 : 0);
+					try{
+						String expression = evaluateExpression(child.getTextContent(), paramType.asType());
+						if(nodeName.contains(".")){
+							writer.addMethodCall(receiver, setterName, "node" + nodeId, expression);
+						}else{
+							writer.addMethodCall("node" + nodeId, setterName, expression);
+						}
+						return;
+					}catch(IllegalStateException e){
+						// handled by loop
+					}
+				}
+			}
+			throw new IllegalStateException("Element " + child.getNodeName() + " cannot be evaluated in FXML file");
+		}else{
+			parseNode(grandChild, imports);
+		}
+		writer.addMethodCall("node" + nodeId, setterName, "node" + childNodeId);
 	}
 	
 	private Optional<String> getValueFromAnnotation(Element element, String annotationName, String annotationValueName) {

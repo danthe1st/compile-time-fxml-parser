@@ -58,3 +58,4 @@ Furthermore, the following things needed to be left out because of Compile-time 
 Other limitations include:
 
 - Big FXML files may fail compilation because of too many local variables. In that case, one split up the FXML file into multiple files using `fx:include`.
+- `fx:id`s can only be accessed after being declared

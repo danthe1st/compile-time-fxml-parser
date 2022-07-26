@@ -30,8 +30,10 @@
             <Font fx:id="sysFont" name="System Bold" size="15" />
          </font>
       </Text>
-      <Text layoutX="136.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty TextField" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="175.0" >
-      <font><fx:reference source="sysFont"/></font>
+      <Text layoutX="136.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty TextField" AnchorPane.leftAnchor="100.0" >
+      	<AnchorPane.topAnchor>175.0</AnchorPane.topAnchor>
+      <font>
+      <fx:reference source="sysFont"/></font>
       </Text>
       <Text strokeType="OUTSIDE" strokeWidth="0.0">
       	<text>

@@ -13,11 +13,12 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
     mavenLocal()
+    maven { url 'https://jitpack.io' }
 }
-application.mainClassName= 'io.github.danthe1st.fxml_parser.example.gradle.GradleExample'
+application.mainClassName = 'io.github.danthe1st.fxml_parser.example.gradle.FXMLParserExample'
 dependencies {
-    annotationProcessor 'io.github.danthe1st:compile-time-fxml-parser:0.0.1-SNAPSHOT'
-    compileOnly 'io.github.danthe1st:compile-time-fxml-parser:0.0.1-SNAPSHOT'
+    annotationProcessor 'io.github.danthe1st:compile-time-fxml-parser:-SNAPSHOT'
+    compileOnly 'io.github.danthe1st:compile-time-fxml-parser:-SNAPSHOT'
     implementation 'org.openjfx:javafx-base:11'
     implementation 'org.openjfx:javafx-graphics:11'
     implementation 'org.openjfx:javafx-controls:11'

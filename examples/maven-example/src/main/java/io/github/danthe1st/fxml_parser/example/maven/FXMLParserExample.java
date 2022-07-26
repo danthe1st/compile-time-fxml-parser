@@ -1,7 +1,5 @@
 package io.github.danthe1st.fxml_parser.example.maven;
 
-import java.util.ResourceBundle;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
@@ -15,13 +13,13 @@ public class FXMLParserExample extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("compile-time-fxml-parser Maven Example");
-		// AnchorPane root = FXMLParserControllerFXMLRepresentation.createNode();
+		AnchorPane root = FXMLParserControllerFXMLRepresentation.createNode();
 		
 //		//alternative:
-		FXMLParserControllerFXMLRepresentation loader = new FXMLParserControllerFXMLRepresentation();
-		loader.setResourceBundle(ResourceBundle.getBundle("localization"));
-		loader.buildNode();
-		AnchorPane root = loader.getRoot();
+//		FXMLParserControllerFXMLRepresentation loader = new FXMLParserControllerFXMLRepresentation();
+//		loader.setResourceBundle(ResourceBundle.getBundle("localization"));
+//		loader.buildNode();
+//		AnchorPane root = loader.getRoot();
 		
 		primaryStage.setScene(new Scene(root));
 		primaryStage.show();

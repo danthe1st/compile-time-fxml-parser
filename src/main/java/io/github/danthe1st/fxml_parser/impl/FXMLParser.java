@@ -259,6 +259,17 @@ class FXMLParser {
 			writer.addVariable(new VariableDefinition(includedRoot.getQualifiedName().toString(), "node" + nodeId), includeLoaderName + ".getRoot()");
 			typeName = includedRoot.getQualifiedName().toString();
 			needToCreate = false;
+		}else if("fx:reference".equals(typeName)){
+			Node sourceAttr = attributes.getNamedItem("source");
+			if(sourceAttr == null){
+				throw new IllegalStateException("fx:reference element missing source attribute in FXML file");
+			}
+			Map.Entry<String, TypeElement> sourceEntry = fxIds.get(sourceAttr.getNodeValue());
+			if(sourceEntry == null){
+				throw new IllegalStateException("fx:reference element referring to unknown element " + sourceAttr.getNodeValue() + " in FXML file - make sure a matching fx:id is declared");
+			}
+			writer.addVariable(new VariableDefinition(sourceEntry.getValue().getQualifiedName().toString(), "node" + nodeId), sourceEntry.getKey());
+			return;
 		}
 		TypeElement typeElem = getTypeMirrorFromName(typeName, imports);
 		if(typeElem == null){

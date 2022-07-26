@@ -45,3 +45,16 @@ This should automatically create a class with the name of the annotated class + 
 This method loads the UI elements specified in the FXML file and returns the root element.
 
 An example can be found in [examples/maven-example](examples/maven-example).
+
+### Limitations
+
+This project is not finished and is therefore missing functionality.
+
+Furthermore, the following things needed to be left out because of Compile-time FXML-parser's static nature:
+
+- Builders (using `javafx.util.Builder`) are not supported because they require looking up attributes of arbitary subclasses in unsupported packages.
+- Scripts (using `fx:script`) are not supported because of the static nature of Compile-time FXML-parser
+
+Other limitations include:
+
+- Big FXML files may fail compilation because of too many local variables. In that case, one split up the FXML file into multiple files using `fx:include`.

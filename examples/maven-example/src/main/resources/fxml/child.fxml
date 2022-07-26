@@ -7,6 +7,6 @@
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.danthe1st.fxml_parser.example.maven.OtherController">
    <children>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This is a VBox from another FXML file" />
-      <Button mnemonicParsing="false" text="Button" />
+      <Button mnemonicParsing="false" text="Button" fx:id="btn" />
    </children>
 </VBox>

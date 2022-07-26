@@ -12,7 +12,11 @@
       <TextField layoutX="257.0" layoutY="201.0" prefHeight="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="175.0" >
       	<minHeight><Double fx:constant="NEGATIVE_INFINITY"/></minHeight>
       </TextField>
-      <TextField layoutX="257.0" layoutY="119.0" prefHeight="20.0" text="Hello World" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="120.0" />
+      <TextField layoutX="257.0" layoutY="119.0" prefHeight="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="120.0" >
+      <text>
+      		<String fx:id="helloText" fx:value="Hello World" />
+      	</text>
+      </TextField>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This was loaded from an FXML file at compile-time" textAlignment="CENTER" wrappingWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
          <font>
             <Font name="System Bold" size="24.0" />
@@ -29,7 +33,11 @@
       <Text layoutX="136.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="empty TextField" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="175.0" >
       <font><fx:reference source="sysFont"/></font>
       </Text>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0">
+      	<text>
+      		<fx:copy source="helloText"/>
+      	</text>
+      </Text>
       <Text fx:id="bottomText" onMouseClicked="#onBottomTextClicked" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-style: italic;" text="Text" textAlignment="LEFT" wrappingWidth="254.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="50.0" />
       <fx:include source="child.fxml" AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="50.0" />
    </children>

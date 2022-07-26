@@ -13,14 +13,14 @@ public class ClassWriter implements AutoCloseable {
 	public ClassWriter(Writer writer) {
 		this.writer = writer;
 	}
-
+	
 	// region class definition
 	public void packageDeclaration(String packageName) throws IOException {
 		writer.write("package ");
 		writer.write(packageName);
 		endStatement();
 	}
-
+	
 	public void addImport(String name) throws IOException {
 		writer.write("import ");
 		writer.write(name);
@@ -38,7 +38,7 @@ public class ClassWriter implements AutoCloseable {
 		endBlock();
 	}
 	// endregion
-
+	
 	// region attributes
 	public void addAttribute(VariableDefinition variable) throws IOException {
 		writer.write("private ");
@@ -65,7 +65,7 @@ public class ClassWriter implements AutoCloseable {
 	private void endConstructor() throws IOException {
 		endBlock();
 	}
-
+	
 	private void beginConstructorBody() throws IOException {
 		beginBlock();
 	}
@@ -85,11 +85,11 @@ public class ClassWriter implements AutoCloseable {
 		writeParams(parameters);
 		beginBlock();
 	}
-
+	
 	public void endMethod() throws IOException {
 		endBlock();
 	}
-
+	
 	// endregion
 	
 	private void writeParams(VariableDefinition[] parameters) throws IOException {
@@ -122,12 +122,12 @@ public class ClassWriter implements AutoCloseable {
 		writer.write(defaultValue);
 		endStatement();
 	}
-
+	
 	public void addVariable(VariableDefinition variable) throws IOException {
 		addVariableRaw(variable);
 		endStatement();
 	}
-
+	
 	private void addVariableRaw(VariableDefinition variable) throws IOException {
 		writer.write(variable.getType());
 		writer.write(" ");
@@ -158,22 +158,22 @@ public class ClassWriter implements AutoCloseable {
 		writer.write(")");
 		endStatement();
 	}
-
+	
 	public void addThrow(String exceptionExpression) throws IOException {
 		addStatement("throw " + exceptionExpression);
 	}
-
+	
 	public void beginIf(String condition) throws IOException {
 		writer.write("if (");
 		writer.write(condition);
 		writer.write(") ");
 		beginBlock();
 	}
-
+	
 	public void endIf() throws IOException {
 		endBlock();
 	}
-
+	
 	public void beginForEach(String typeName, String variableName, String iterable) throws IOException {
 		writer.write("for (");
 		writer.write(typeName);
@@ -184,7 +184,7 @@ public class ClassWriter implements AutoCloseable {
 		writer.write(")");
 		beginBlock();
 	}
-
+	
 	public void beginSimpleFor(String init, String condition, String advancement) throws IOException {
 		writer.write("for (");
 		writer.write(init);
@@ -195,21 +195,21 @@ public class ClassWriter implements AutoCloseable {
 		writer.write(")");
 		beginBlock();
 	}
-
+	
 	public void endFor() throws IOException {
 		endBlock();
 	}
-
+	
 	public void addStatement(String stmt) throws IOException {
 		writer.write(stmt);
 		endStatement();
 	}
-
+	
 	private void endStatement() throws IOException {
 		writer.write(";");
 		nextLine();
 	}
-
+	
 	// endregion
 	
 	// region try-block
@@ -218,7 +218,7 @@ public class ClassWriter implements AutoCloseable {
 		beginBlock();
 		nextLine();
 	}
-
+	
 	public void swtichToCatchBlock(String exceptionType, String exceptionName) throws IOException {
 		endBlock();
 		writer.write("catch(");
@@ -228,7 +228,7 @@ public class ClassWriter implements AutoCloseable {
 		writer.write(')');
 		beginBlock();
 	}
-
+	
 	public void endTryBlock() throws IOException {
 		endBlock();
 	}
@@ -239,22 +239,22 @@ public class ClassWriter implements AutoCloseable {
 		indentation++;
 		nextLine();
 	}
-
+	
 	public void endBlock() throws IOException {
 		writer.write("}");
 		indentation--;
 		nextLine();
 	}
-
+	
 	private void nextLine() throws IOException {
 		writer.write(System.lineSeparator());
 		indent();
 	}
-
+	
 	private void indent() throws IOException {
 		writer.write("\t".repeat(indentation));
 	}
-
+	
 	@Override
 	public void close() throws IOException {
 		writer.close();

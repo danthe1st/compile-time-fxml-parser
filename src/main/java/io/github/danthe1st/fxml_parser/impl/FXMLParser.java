@@ -123,6 +123,7 @@ class FXMLParser {
 					}
 					writer.beginClass(className);
 					String nodeType = item.getNodeName();
+					boolean isFXRoot = false;
 					if("fx:root".equals(nodeType)){
 						Node typeNode = item.getAttributes().getNamedItem("type");
 						if(typeNode == null){
@@ -130,14 +131,17 @@ class FXMLParser {
 							return null;
 						}
 						nodeType = typeNode.getNodeValue();
+						isFXRoot = true;
 					}
 					rootTypeName = nodeType;
 					writer.addVariable(new VariableDefinition("private " + nodeType, "rootNode"));
 					writer.addVariable(new VariableDefinition("private " + ResourceBundle.class.getCanonicalName(), "resourceBundle"));
 					writer.beginMethod(new String[] { "public" }, "buildNode", "void");
-					writer.beginIf("rootNode != null");
-					writer.addThrow("new IllegalStateException(\"Cannot call buildNode() multiple times\")");
-					writer.endIf();
+					if(!isFXRoot){
+						writer.beginIf("rootNode != null");
+						writer.addThrow("new IllegalStateException(\"Cannot call buildNode() multiple times\")");
+						writer.endIf();
+					}
 					parseNode(item, imports);
 					if(controller != null){
 						addFXIdsToController();
@@ -154,6 +158,12 @@ class FXMLParser {
 					writer.beginMethod(new String[] { "public" }, "getRoot", nodeType);
 					writer.addReturn("rootNode");
 					writer.endMethod();
+					
+					if(isFXRoot){
+						writer.beginMethod(new String[] { "public" }, "setRoot", "void", new VariableDefinition(nodeType, "root"));
+						writer.addAssignment("rootNode", "root");
+						writer.endMethod();
+					}
 					
 					writer.beginMethod(new String[] { "public", "static" }, "createNode", nodeType);
 					writer.addVariable(new VariableDefinition(targetClass, "loader"), "new " + targetClass + "()");
@@ -220,6 +230,7 @@ class FXMLParser {
 		String typeName = item.getNodeName();
 		NamedNodeMap attributes = item.getAttributes();
 		boolean needToCreate = true;
+		boolean isFXRoot = false;
 		if("fx:root".equals(typeName)){
 			Node typeNode = attributes.getNamedItem("type");
 			if(typeName == null){
@@ -230,6 +241,7 @@ class FXMLParser {
 				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:root is allowed only for the first element", element);
 			}
 			typeName = typeNode.getNodeValue();
+			isFXRoot = true;
 		}else if("fx:include".equals(typeName)){
 			// TODO
 			Node fxSource = attributes.getNamedItem("source");
@@ -259,7 +271,15 @@ class FXMLParser {
 		
 		List<? extends Element> members = processingEnv.getElementUtils().getAllMembers(typeElem);
 		if(needToCreate){
-			findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
+			if(isFXRoot){
+				writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), "rootNode");
+				writer.beginIf("node" + nodeId + " == null");
+				findConstructorAndAddCall(nodeId + 1, typeName, attributes, typeElem);
+				writer.addAssignment("node" + nodeId, "node" + (nodeId + 1));
+				writer.endIf();
+			}else{
+				findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
+			}
 			if(processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(typeElem.asType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.Map").asType()))){
 				for(int i = 0; i < attributes.getLength(); i++){
 					Node attr = attributes.item(i);

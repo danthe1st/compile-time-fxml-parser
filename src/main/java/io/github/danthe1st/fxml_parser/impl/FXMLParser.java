@@ -223,8 +223,6 @@ class FXMLParser {
 	
 	private void parseNode(Node item, Map<String, String> imports) throws IOException, DOMException, ParserConfigurationException, SAXException {
 		// TODO what to do with text nodes?
-		// TODO FXML namespace
-		// TODO builders
 		
 		int nodeId = currentNodeId++;
 		String typeName = item.getNodeName();
@@ -243,7 +241,6 @@ class FXMLParser {
 			typeName = typeNode.getNodeValue();
 			isFXRoot = true;
 		}else if("fx:include".equals(typeName)){
-			// TODO
 			Node fxSource = attributes.getNamedItem("source");
 			if(fxSource == null){
 				processingEnv.getMessager().printMessage(Kind.ERROR, "fx:include element without source attribute present in FXML file", element);
@@ -255,7 +252,6 @@ class FXMLParser {
 			}
 			String includeClass = targetClass + "Include" + nodeId;
 			TypeElement includedRoot = parseFXML(processingEnv, element, includeFXML, includeClass);
-			// TODO replace 'var' with actual type name
 			String includeLoaderName = "node" + nodeId + "Loader";
 			writer.addVariable(new VariableDefinition(includeClass, includeLoaderName), "new " + includeClass + "()");
 			writer.addMethodCall(includeLoaderName, "setResourceBundle", "this.resourceBundle");
@@ -274,11 +270,11 @@ class FXMLParser {
 			if(isFXRoot){
 				writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), "rootNode");
 				writer.beginIf("node" + nodeId + " == null");
-				findConstructorAndAddCall(nodeId + 1, typeName, attributes, typeElem);
+				tryCreateInstance(nodeId + 1, typeName, attributes, typeElem);
 				writer.addAssignment("node" + nodeId, "node" + (nodeId + 1));
 				writer.endIf();
 			}else{
-				findConstructorAndAddCall(nodeId, typeName, attributes, typeElem);
+				tryCreateInstance(nodeId, typeName, attributes, typeElem);
 			}
 			if(processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(typeElem.asType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.Map").asType()))){
 				for(int i = 0; i < attributes.getLength(); i++){
@@ -297,7 +293,7 @@ class FXMLParser {
 				Node attr = attributes.item(i);
 				String paramName = attr.getNodeName();
 				String paramValue = attr.getNodeValue();
-				if(!(needToCreate && "source".equals(paramName))){
+				if(needToCreate || !"source".equals(paramName)){
 					writeParameter(imports, "node" + nodeId, members, paramName, paramValue, typeElem);
 				}
 			}
@@ -380,7 +376,7 @@ class FXMLParser {
 			.anyMatch(mirror -> mirror.getAnnotationType().toString().equals(annotationName));
 	}
 	
-	private void findConstructorAndAddCall(int nodeId, String typeName, NamedNodeMap attributes, TypeElement typeElem) throws IOException {
+	private void tryCreateInstance(int nodeId, String typeName, NamedNodeMap attributes, TypeElement typeElem) throws IOException {
 		Node fxValue = attributes.getNamedItem("fx:value");
 		if(fxValue != null){
 			for(Element member : typeElem.getEnclosedElements()){
@@ -403,6 +399,7 @@ class FXMLParser {
 			return;
 		}
 		List<ExecutableElement> constructors = getConstructors(typeElem);
+		List<String> maxParamExpressions = null;
 		for(ExecutableElement constructor : constructors){
 			Map<String, String> params = new HashMap<>();
 			for(int i = 0; i < attributes.getLength(); i++){
@@ -410,10 +407,13 @@ class FXMLParser {
 				params.put(item.getNodeName(), item.getNodeValue());
 			}
 			List<String> paramExpressions = evaluateParameters(constructor, params);
-			if(paramExpressions != null){
-				writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), "new " + typeName + "(" + paramExpressions.stream().collect(Collectors.joining(", ")) + ")");
-				return;
+			if(paramExpressions != null && (maxParamExpressions == null || paramExpressions.size() > maxParamExpressions.size())){
+				maxParamExpressions = paramExpressions;
 			}
+		}
+		if(maxParamExpressions != null){
+			writer.addVariable(new VariableDefinition(typeName, "node" + nodeId), "new " + typeName + "(" + maxParamExpressions.stream().collect(Collectors.joining(", ")) + ")");
+			return;
 		}
 		throw new IllegalStateException("No constructor found for " + typeName + " in FXML file");
 	}
@@ -445,7 +445,7 @@ class FXMLParser {
 		String receiver = nodeVariableName;
 		boolean isStaticCall = false;
 		if(paramName.startsWith("fx:")){
-			controller = writeFXParameter(paramName, paramValue, controller, imports, nodeVariableName, nodeType);// TODO move out of this method
+			controller = writeFXParameter(paramName, paramValue, controller, imports, nodeVariableName, nodeType);// TODO move this call out of this method
 			return;
 		}
 		if(paramName.contains(".")){

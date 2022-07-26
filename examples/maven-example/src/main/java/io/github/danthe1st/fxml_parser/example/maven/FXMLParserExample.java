@@ -14,7 +14,6 @@ public class FXMLParserExample extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("compile-time-fxml-parser Maven Example");
 		AnchorPane root = FXMLParserControllerFXMLRepresentation.createNode();
-		
 //		//alternative:
 //		FXMLParserControllerFXMLRepresentation loader = new FXMLParserControllerFXMLRepresentation();
 //		loader.setResourceBundle(ResourceBundle.getBundle("localization"));

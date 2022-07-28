@@ -97,9 +97,10 @@ This project is not finished and is therefore missing functionality.
 Furthermore, the following things needed to be left out because of Compile-time FXML-parser's static nature:
 
 - Builders (using `javafx.util.Builder`) are not supported because they require looking up attributes of arbitary subclasses in unsupported packages.
-- Scripts (using `fx:script`) are not supported because of the static nature of Compile-time FXML-parser
+- Scripts (using `fx:script`) are not supported because of the static nature of Compile-time FXML-parser.
 
 Other limitations include:
 
 - Big FXML files may fail compilation because of too many local variables. In that case, one split up the FXML file into multiple files using `fx:include`.
-- `fx:id`s can only be accessed after being declared
+- `fx:id`s can only be accessed after being declared.
+- Default Properties are not supported.

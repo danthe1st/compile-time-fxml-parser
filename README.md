@@ -93,6 +93,7 @@ An example can be found in [examples/maven-example](examples/maven-example).
 ### Limitations
 
 This project is not finished and is therefore missing functionality.
+- Default Properties, Define Blocks, Location Resolution, Resource Resolution, Variable Resolution, Escape Sequences and Expression Binding are not (yet) supported.
 
 Furthermore, the following things needed to be left out because of Compile-time FXML-parser's static nature:
 
@@ -103,4 +104,3 @@ Other limitations include:
 
 - Big FXML files may fail compilation because of too many local variables. In that case, one split up the FXML file into multiple files using `fx:include`.
 - `fx:id`s can only be accessed after being declared.
-- Default Properties are not supported.

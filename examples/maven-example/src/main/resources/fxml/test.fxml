@@ -14,7 +14,7 @@
       </TextField>
       <TextField layoutX="257.0" layoutY="119.0" prefHeight="20.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="120.0">
       <text>
-      		<String fx:id="helloText" fx:value="Hello World" />
+      		<String fx:id="helloText" fx:value="%helloWorld" />
       	</text>
       </TextField>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This was loaded from an FXML file at compile-time" textAlignment="CENTER" wrappingWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">

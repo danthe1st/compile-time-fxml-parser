@@ -607,6 +607,10 @@ class FXMLParser {
 			if(paramValue.startsWith("@")){
 				paramValue = resourceLocation + "/" + paramValue.substring(1);
 			}
+			if(paramValue.startsWith("%")){
+				paramValue = paramValue.substring(1);
+				return "resourceBundle==null?\"" + paramValue + "\":resourceBundle.getString(\"" + paramValue + "\")";
+			}
 			return '"' + paramValue + '"';
 		}else if(expressionType instanceof DeclaredType t && t.asElement().getKind() == ElementKind.ENUM){
 			return t + "." + paramValue.toUpperCase();

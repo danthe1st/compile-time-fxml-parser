@@ -6,7 +6,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jfx.version>11</jfx.version>
-		<fxml-parser-version>-SNAPSHOT</fxml-parser-version>
+		<fxml-parser-version>${project.version}</fxml-parser-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -16,7 +16,7 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.github.danthe1st</groupId>
+			<groupId>io.github.danthe1st</groupId>
 			<artifactId>compile-time-fxml-parser</artifactId>
 			<version>${fxml-parser-version}</version>
 			<scope>provided</scope>
@@ -43,7 +43,7 @@
 					<release>11</release>
 					<annotationProcessorPaths>
 						<annotationProcessorPath>
-							<groupId>com.github.danthe1st</groupId>
+							<groupId>io.github.danthe1st</groupId>
 							<artifactId>compile-time-fxml-parser</artifactId>
 							<version>${fxml-parser-version}</version>
 						</annotationProcessorPath>

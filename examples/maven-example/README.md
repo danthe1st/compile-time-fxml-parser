@@ -7,7 +7,7 @@ This is an example how to use Compile-time FXML-parser with Maven.
 
 If a suiting JDK, and Maven are installed, this project can be run using the command `mvn clean compile javafx:run`.
 
-That should open a window like this:
+That should open a window similar to this:
 
 ![image](https://user-images.githubusercontent.com/34687786/178830955-e1d77fa8-1bcf-4265-b0f8-0c7f656ae804.png)
 

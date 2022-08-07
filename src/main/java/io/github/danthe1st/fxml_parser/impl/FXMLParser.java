@@ -59,6 +59,7 @@ class FXMLParser {
 	private final Map<String, String> imports = new HashMap<>();
 	private TypeElement controller = null;
 	private final Map<String, Map.Entry<String, TypeElement>> fxIds = new HashMap<>();
+	private String resourceLocation;
 	
 	public static TypeElement parseFXML(ProcessingEnvironment processingEnv, Element element, String fxmlFile, String targetClass) throws IOException, ParserConfigurationException, SAXException {
 		int lastShashIndex = fxmlFile.lastIndexOf('/');
@@ -81,6 +82,7 @@ class FXMLParser {
 		super();
 		this.processingEnv = processingEnv;
 		this.fxmlFile = fxmlFile;
+		this.resourceLocation = splitByLast(fxmlFile, '/').getKey();
 		this.element = element;
 		this.targetClass = targetClass;
 	}
@@ -188,7 +190,7 @@ class FXMLParser {
 	private void writeControllerInitialization(ClassWriter writer) throws IOException {
 		TypeElement initializable = processingEnv.getElementUtils().getTypeElement("javafx.fxml.Initializable");
 		if(initializable != null && processingEnv.getTypeUtils().isAssignable(controller.asType(), initializable.asType())){
-			writer.addMethodCall("controller", "initialize", "getClass().getClassLoader().getResource(\"" + splitByLast(fxmlFile, '/').getKey() + "/\")", "resourceBundle");
+			writer.addMethodCall("controller", "initialize", "getClass().getClassLoader().getResource(\"" + resourceLocation + "/\")", "resourceBundle");
 		}
 		List<? extends Element> members = processingEnv.getElementUtils().getAllMembers(controller);
 		for(Element member : members){
@@ -521,6 +523,7 @@ class FXMLParser {
 		}
 		String accessorSuffix = Character.toUpperCase(paramName.charAt(0)) + paramName.substring(1);
 		String setterName = "set" + accessorSuffix;
+		String getterName = "get" + accessorSuffix;
 		boolean paramSet = false;
 		for(Element member : members){
 			if(member.getKind() == ElementKind.METHOD && setterName.equals(member.getSimpleName().toString())){
@@ -533,6 +536,16 @@ class FXMLParser {
 					}else{
 						writer.addMethodCall(receiver, setterName, expression);
 					}
+					return;
+				}
+			}
+			if(member.getKind() == ElementKind.METHOD && getterName.equals(member.getSimpleName().toString()) && !isStaticCall){
+				ExecutableType memberType = (ExecutableType) member.asType();
+				if(memberType.getParameterTypes().isEmpty() && processingEnv.getTypeUtils().isSubtype(processingEnv.getTypeUtils().erasure(memberType.getReturnType()), processingEnv.getTypeUtils().erasure(processingEnv.getElementUtils().getTypeElement("java.util.List").asType()))){
+					List<? extends TypeMirror> directSupertypes = processingEnv.getTypeUtils().directSupertypes(memberType.getReturnType());
+					TypeMirror getterReturnType = directSupertypes.stream().filter(t -> "java.util.List".equals(processingEnv.getTypeUtils().erasure(t).toString())).findAny().orElseThrow(() -> new IllegalStateException("Type is a list but java.util.List is not a supertype"));
+					String expression = evaluateExpression(paramValue, ((DeclaredType) getterReturnType).getTypeArguments().get(0));
+					writer.addMethodCall(receiver + "." + getterName + "()", "add", expression);
 					return;
 				}
 			}
@@ -559,26 +572,26 @@ class FXMLParser {
 	private TypeElement writeFXParameter(String paramName, String paramValue, TypeElement controller, Map<String, String> imports, String nodeVariableName, TypeElement nodeType) throws IOException {
 		paramName = paramName.substring(paramName.indexOf(':') + 1);
 		switch(paramName) {
-		case "controller":
-			if(controller != null){
-				throw new IllegalStateException("duplicate controller");
-			}
-			TypeElement controllerType = getTypeMirrorFromName(paramValue, imports);
-			if(controllerType == null){
-				throw new IllegalStateException("unknown controller type: " + paramValue);
-			}
-			writer.addAssignment("controller", "new " + paramValue + "()");
-			return controllerType;
-		case "id":
-			Entry<String, TypeElement> prev = fxIds.put(paramValue, Map.entry(nodeVariableName, nodeType));
-			if(prev != null){
-				throw new IllegalArgumentException("Duplicate fx:id: " + paramValue);
-			}
-			break;
-		case "value", "factory", "constant":
-			break;// handled elsewhere
-		default:
-			throw new IllegalArgumentException("Unexpected value: " + paramName);
+			case "controller":
+				if(controller != null){
+					throw new IllegalStateException("duplicate controller");
+				}
+				TypeElement controllerType = getTypeMirrorFromName(paramValue, imports);
+				if(controllerType == null){
+					throw new IllegalStateException("unknown controller type: " + paramValue);
+				}
+				writer.addAssignment("controller", "new " + paramValue + "()");
+				return controllerType;
+			case "id":
+				Entry<String, TypeElement> prev = fxIds.put(paramValue, Map.entry(nodeVariableName, nodeType));
+				if(prev != null){
+					throw new IllegalArgumentException("Duplicate fx:id: " + paramValue);
+				}
+				break;
+			case "value", "factory", "constant":
+				break;// handled elsewhere
+			default:
+				throw new IllegalArgumentException("Unexpected value: " + paramName);
 		}
 		return controller;
 	}
@@ -591,6 +604,9 @@ class FXMLParser {
 			}
 			return paramValue;
 		}else if(processingEnv.getTypeUtils().isSubtype(processingEnv.getElementUtils().getTypeElement("java.lang.String").asType(), expressionType)){
+			if(paramValue.startsWith("@")){
+				paramValue = resourceLocation + "/" + paramValue.substring(1);
+			}
 			return '"' + paramValue + '"';
 		}else if(expressionType instanceof DeclaredType t && t.asElement().getKind() == ElementKind.ENUM){
 			return t + "." + paramValue.toUpperCase();

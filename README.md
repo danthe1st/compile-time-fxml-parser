@@ -18,11 +18,11 @@ Compile-time FXML-parser is an annotation processor that parses FXML files at co
 	</repository>
 </repositories>
 ```
-* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time JSON-parser (If you want to use a specific version, you can specify any commit hash instead of `-SNAPSHOT`)
+* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time FXML-parser (If you want to use a specific version, you can specify any commit hash instead of `-SNAPSHOT`)
 ```xml
 <dependency>
     <groupId>com.github.danthe1st</groupId>
-    <artifactId>compile-time-json-parser</artifactId>
+    <artifactId>compile-time-fxml-parser</artifactId>
     <version>-SNAPSHOT</version>
 </dependency>
 ```
@@ -36,7 +36,7 @@ Compile-time FXML-parser is an annotation processor that parses FXML files at co
 		<annotationProcessorPaths>
 			<annotationProcessorPath>
 				<groupId>io.github.danthe1st</groupId>
-				<artifactId>compile-time-json-parser</artifactId>
+				<artifactId>compile-time-fxml-parser</artifactId>
 				<version>-SNAPSHOT</version>
 			</annotationProcessorPath>
 		</annotationProcessorPaths>
@@ -51,11 +51,11 @@ Compile-time FXML-parser is an annotation processor that parses FXML files at co
 * Download the source code of this repository
 * Run `mvn clean install` in the directory of Compile-time FXML-parser
 * [Create a JavaFX project with Maven](https://openjfx.io/openjfx-docs/#maven)
-* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time JSON-parser (replace `VERSION` with the version from the [`pom.xml` of Compile-time FXML-parser](pom.xml)
+* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time FXML-parser (replace `VERSION` with the version from the [`pom.xml` of Compile-time FXML-parser](pom.xml)
 ```xml
 <dependency>
     <groupId>io.github.danthe1st</groupId>
-    <artifactId>compile-time-json-parser</artifactId>
+    <artifactId>compile-time-fxml-parser</artifactId>
     <version>VERSION</version>
 </dependency>
 ```
@@ -69,7 +69,7 @@ Compile-time FXML-parser is an annotation processor that parses FXML files at co
 		<annotationProcessorPaths>
 			<annotationProcessorPath>
 				<groupId>io.github.danthe1st</groupId>
-				<artifactId>compile-time-json-parser</artifactId>
+				<artifactId>compile-time-fxml-parser</artifactId>
 				<version>VERSION</version>
 			</annotationProcessorPath>
 		</annotationProcessorPaths>
